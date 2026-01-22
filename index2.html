@@ -3,37 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Timeware Ops | MVP Mockup</title>
+    <title>Timeware Ops | Detailed MVP</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* 모바일 화면 시뮬레이션을 위한 스타일 */
-        body { background-color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .mobile-frame { width: 375px; height: 812px; background: white; border-radius: 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; position: relative; border: 8px solid #1e293b; }
-        .status-bar { height: 44px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; font-size: 14px; font-weight: 600; color: #1e293b; }
-        .content-area { height: calc(100% - 44px - 80px); overflow-y: auto; background-color: #f8fafc; padding-bottom: 20px;}
-        .bottom-nav { height: 80px; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: center; padding-bottom: 20px; position: absolute; bottom: 0; width: 100%; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 10px; cursor: pointer; }
+        /* 기본 설정 */
+        body { background-color: #f1f5f9; display: flex; justify-content: center; align-items: center; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+        .mobile-frame { width: 375px; height: 812px; background: #f8fafc; border-radius: 40px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); overflow: hidden; position: relative; border: 8px solid #1e293b; }
+        
+        /* 레이아웃 */
+        .status-bar { height: 44px; background: white; display: flex; justify-content: space-between; align-items: center; padding: 0 24px; font-size: 14px; font-weight: 600; color: #1e293b; z-index: 50; position: relative; }
+        .content-area { height: calc(100% - 44px - 80px); overflow-y: auto; padding-bottom: 20px; }
+        .bottom-nav { height: 80px; background: white; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-around; align-items: center; padding-bottom: 20px; position: absolute; bottom: 0; width: 100%; z-index: 40; }
+        
+        /* Nav Item */
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: #94a3b8; font-size: 10px; cursor: pointer; transition: color 0.2s; }
         .nav-item.active { color: #2563eb; }
         .nav-item i { font-size: 20px; margin-bottom: 4px; }
         
-        /* Hide scrollbar */
-        .content-area::-webkit-scrollbar { display: none; }
+        /* 탭 및 모달 로직 */
+        .tab-screen { display: none; animation: fadeIn 0.2s; }
+        .tab-screen.active { display: block; }
         
-        /* Tab Content Logic */
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .modal { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            background: #f8fafc; z-index: 60; 
+            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            display: flex; flex-direction: column;
+        }
+        .modal.open { transform: translateY(0); }
+        .modal-content { flex: 1; overflow-y: auto; padding-bottom: 40px; }
 
-        /* Calendar Grid */
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center; margin-bottom: 16px; }
-        .cal-day { font-size: 12px; color: #64748b; }
-        .cal-date { font-size: 14px; font-weight: 600; padding: 8px; border-radius: 12px; }
+        /* 애니메이션 */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* 스크롤바 숨김 */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* 커스텀 컴포넌트 */
         .cal-date.active { background-color: #2563eb; color: white; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3); }
-        .dot { width: 6px; height: 6px; border-radius: 50%; margin: 4px auto 0; }
-        
-        /* Toggle Switch */
-        .toggle-checkbox:checked { right: 0; border-color: #2563eb; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #2563eb; }
+        .task-card:active { transform: scale(0.98); transition: transform 0.1s; }
     </style>
 </head>
 <body>
@@ -48,168 +57,271 @@
             </div>
         </div>
 
-        <div id="tab-calendar" class="tab-content content-area active">
-            <header class="p-6 bg-white border-b border-slate-100">
-                <div class="flex justify-between items-center mb-4">
+        <div id="tab-calendar" class="tab-screen content-area hide-scrollbar active">
+            <header class="p-6 bg-white border-b border-slate-100 pb-4">
+                <div class="flex justify-between items-center mb-6">
                     <h1 class="text-2xl font-bold text-slate-800">1월 일정</h1>
-                    <button class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"><i class="fas fa-bell"></i></button>
+                    <button class="w-9 h-9 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 border border-slate-100"><i class="far fa-bell"></i></button>
                 </div>
                 
-                <div class="calendar-grid">
-                    <div class="cal-day">일</div><div class="cal-day">월</div><div class="cal-day">화</div><div class="cal-day">수</div><div class="cal-day">목</div><div class="cal-day">금</div><div class="cal-day">토</div>
+                <div class="grid grid-cols-7 gap-2 text-center mb-2">
+                    <div class="text-xs text-slate-400 mb-2">일</div><div class="text-xs text-slate-400 mb-2">월</div><div class="text-xs text-slate-400 mb-2">화</div><div class="text-xs text-slate-400 mb-2">수</div><div class="text-xs text-slate-400 mb-2">목</div><div class="text-xs text-slate-400 mb-2">금</div><div class="text-xs text-slate-400 mb-2">토</div>
                     
-                    <div class="cal-date">18</div>
-                    <div class="cal-date">19<div class="dot bg-green-500"></div></div>
-                    <div class="cal-date">20</div>
-                    <div class="cal-date">21<div class="dot bg-yellow-500"></div></div>
-                    <div class="cal-date active">22<div class="dot bg-blue-500"></div></div>
-                    <div class="cal-date">23</div>
-                    <div class="cal-date">24<div class="dot bg-green-500"></div></div>
+                    <div class="py-2 text-sm text-slate-400">18</div>
+                    <div class="py-2 text-sm font-bold text-slate-700 bg-white rounded-xl border border-transparent">19</div>
+                    <div class="py-2 text-sm font-bold text-slate-700 bg-white rounded-xl border border-transparent">20</div>
+                    <div class="py-2 text-sm font-bold text-slate-700 bg-white rounded-xl border border-transparent relative">21<div class="w-1 h-1 bg-yellow-500 rounded-full absolute bottom-1 left-1/2 transform -translate-x-1/2"></div></div>
+                    <div class="py-2 text-sm font-bold text-white bg-blue-600 rounded-xl shadow-lg shadow-blue-200">22</div>
+                    <div class="py-2 text-sm font-bold text-slate-700 bg-white rounded-xl border border-transparent">23</div>
+                    <div class="py-2 text-sm font-bold text-slate-700 bg-white rounded-xl border border-transparent">24</div>
                 </div>
             </header>
 
-            <div class="p-6 space-y-4">
-                <h2 class="text-lg font-bold text-slate-800">오늘의 작업 (2건)</h2>
-
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500"></div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">청소 완료</span>
-                            <h3 class="text-base font-bold text-slate-800 mt-1">홍대 테라스 #301</h3>
-                        </div>
-                        <span class="text-xs text-slate-400">13:45 완료</span>
-                    </div>
-                    <p class="text-sm text-slate-500 mb-3"><i class="far fa-user mr-1"></i> 김미소 매니저</p>
-                    <button onclick="switchTab('report')" class="w-full py-2 border border-slate-200 rounded-lg text-sm text-slate-600 font-medium hover:bg-slate-50">리포트 확인하기</button>
+            <div class="p-6 space-y-5">
+                <div class="flex justify-between items-end">
+                    <h2 class="text-lg font-bold text-slate-800">오늘의 작업 <span class="text-blue-600">2</span></h2>
+                    <span class="text-xs text-slate-400">2026.01.22 (목)</span>
                 </div>
 
-                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden">
-                    <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-yellow-400"></div>
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <span class="text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded">청소 예정</span>
-                            <h3 class="text-base font-bold text-slate-800 mt-1">강남 듀플렉스 #104</h3>
+                <div onclick="switchTab('report')" class="task-card bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden cursor-pointer">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-blue-500"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">DONE</span>
+                            <span class="text-xs text-slate-400">체크아웃 11:00</span>
                         </div>
-                        <span class="text-xs text-slate-400">11:00 ~ 15:00</span>
+                        <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
                     </div>
-                    <p class="text-sm text-slate-500 mb-3"><i class="far fa-user mr-1"></i> 박성실 매니저</p>
-                    <div class="flex space-x-2">
-                        <span class="text-xs bg-slate-100 text-slate-500 px-2 py-1 rounded">Next Check-in: 16:00</span>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">홍대 테라스 #301</h3>
+                    <p class="text-xs text-slate-500 mb-3">청소 완료 • 리포트 승인 대기</p>
+                    <div class="flex items-center space-x-2 border-t border-slate-50 pt-3">
+                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500"><i class="fas fa-user"></i></div>
+                        <span class="text-xs text-slate-600">김미소 매니저</span>
+                    </div>
+                </div>
+
+                <div onclick="openModal('task-detail-modal')" class="task-card bg-white p-5 rounded-2xl shadow-sm border border-slate-100 relative overflow-hidden cursor-pointer">
+                    <div class="absolute left-0 top-0 bottom-0 w-1 bg-yellow-400"></div>
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded">SCHEDULED</span>
+                            <span class="text-xs text-slate-400">11:00 ~ 15:00</span>
+                        </div>
+                        <i class="fas fa-chevron-right text-slate-300 text-xs"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">강남 듀플렉스 #104</h3>
+                    <p class="text-xs text-slate-500 mb-3">오늘 체크인 (4명, 2박)</p>
+                    <div class="flex items-center space-x-2 border-t border-slate-50 pt-3">
+                        <div class="w-6 h-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] text-slate-500"><i class="fas fa-user"></i></div>
+                        <span class="text-xs text-slate-600">박성실 매니저</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="tab-report" class="tab-content content-area">
-            <header class="px-6 py-4 bg-white border-b border-slate-100 sticky top-0 z-10 flex items-center">
-                <button onclick="switchTab('calendar')" class="mr-4 text-slate-400"><i class="fas fa-arrow-left"></i></button>
-                <h1 class="text-lg font-bold text-slate-800">청소 리포트 상세</h1>
+        <div id="tab-report" class="tab-screen content-area hide-scrollbar">
+            <header class="px-6 py-4 bg-white border-b border-slate-100 sticky top-0 z-20 flex items-center justify-between">
+                <button onclick="switchTab('calendar')" class="w-8 h-8 flex items-center justify-center text-slate-500"><i class="fas fa-arrow-left"></i></button>
+                <h1 class="text-base font-bold text-slate-800">#301 청소 리포트</h1>
+                <button class="w-8 h-8 flex items-center justify-center text-blue-600"><i class="fas fa-share-alt"></i></button>
             </header>
 
             <div class="p-6 space-y-6">
-                <div class="flex items-center space-x-3">
-                    <div class="w-12 h-12 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl"><i class="fas fa-check"></i></div>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
                     <div>
-                        <h2 class="font-bold text-slate-800">청소 완료</h2>
-                        <p class="text-xs text-slate-500">2026.01.22 13:45 제출됨</p>
+                        <span class="text-xs text-slate-400 block mb-1">제출 시간</span>
+                        <span class="text-sm font-bold text-slate-800">2026.01.22 13:45</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-slate-400 block mb-1">소요 시간</span>
+                        <span class="text-sm font-bold text-slate-800">1시간 45분</span>
                     </div>
                 </div>
 
                 <div>
-                    <h3 class="text-sm font-bold text-slate-700 mb-3">현장 사진 (4장)</h3>
+                    <h3 class="text-sm font-bold text-slate-700 mb-3 flex items-center">현장 사진 <span class="ml-2 text-xs font-normal text-slate-400">4장 제출됨</span></h3>
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="aspect-square bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 relative overflow-hidden group">
-                            <i class="fas fa-image text-2xl"></i>
-                            <span class="absolute bottom-2 left-2 text-[10px] text-white bg-black/50 px-1.5 rounded">거실</span>
+                        <div onclick="openModal('photo-modal')" class="aspect-[4/3] bg-slate-200 rounded-lg overflow-hidden relative group cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover">
+                            <div class="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition"></div>
+                            <span class="absolute bottom-2 left-2 text-[10px] text-white bg-black/60 px-2 py-0.5 rounded-full backdrop-blur-sm">거실</span>
                         </div>
-                        <div class="aspect-square bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 relative overflow-hidden">
-                            <i class="fas fa-image text-2xl"></i>
-                             <span class="absolute bottom-2 left-2 text-[10px] text-white bg-black/50 px-1.5 rounded">침실</span>
+                        <div class="aspect-[4/3] bg-slate-200 rounded-lg overflow-hidden relative cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover">
+                            <span class="absolute bottom-2 left-2 text-[10px] text-white bg-black/60 px-2 py-0.5 rounded-full backdrop-blur-sm">침실</span>
                         </div>
-                        <div class="aspect-square bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 relative overflow-hidden">
-                            <i class="fas fa-image text-2xl"></i>
-                             <span class="absolute bottom-2 left-2 text-[10px] text-white bg-black/50 px-1.5 rounded">화장실</span>
+                        <div class="aspect-[4/3] bg-slate-200 rounded-lg overflow-hidden relative cursor-pointer">
+                            <img src="https://images.unsplash.com/photo-1584622050111-993a426fbf0a?ixlib=rb-4.0.3&auto=format&fit=crop&w=300&q=80" class="w-full h-full object-cover">
+                            <span class="absolute bottom-2 left-2 text-[10px] text-white bg-black/60 px-2 py-0.5 rounded-full backdrop-blur-sm">욕실</span>
                         </div>
-                        <div class="aspect-square bg-slate-200 rounded-xl flex items-center justify-center text-slate-400 relative overflow-hidden">
-                            <i class="fas fa-image text-2xl"></i>
-                             <span class="absolute bottom-2 left-2 text-[10px] text-white bg-black/50 px-1.5 rounded">비품</span>
+                        <div class="aspect-[4/3] bg-slate-200 rounded-lg overflow-hidden relative cursor-pointer">
+                            <div class="w-full h-full bg-slate-800 flex items-center justify-center text-white text-xs opacity-50">+1장 더보기</div>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-red-50 border border-red-100 p-4 rounded-xl">
-                    <h3 class="text-sm font-bold text-red-600 mb-1"><i class="fas fa-exclamation-circle mr-1"></i> 특이사항 메모</h3>
+                    <h3 class="text-xs font-bold text-red-600 mb-2 flex items-center"><i class="fas fa-exclamation-triangle mr-1"></i> 특이사항 보고</h3>
                     <p class="text-sm text-slate-700 leading-relaxed">
-                        화장실 세면대 배수가 약간 원활하지 않습니다. 다음 번 청소 때 배수관 클리너가 필요해 보입니다. 그 외 파손된 물품은 없습니다.
+                        화장실 세면대 배수가 약간 원활하지 않습니다. 다음 번 청소 때 배수관 클리너가 필요해 보입니다.
                     </p>
-                </div>
-
-                <div class="flex items-center justify-between text-xs text-slate-400 bg-slate-50 p-3 rounded-lg">
-                    <span><i class="fas fa-map-marker-alt mr-1"></i> 서울시 마포구 연남동 123-45</span>
-                    <span class="text-green-500 font-bold">위치 인증됨</span>
                 </div>
             </div>
         </div>
 
-        <div id="tab-billing" class="tab-content content-area">
+        <div id="tab-billing" class="tab-screen content-area hide-scrollbar">
             <header class="p-6 bg-white border-b border-slate-100">
                 <h1 class="text-2xl font-bold text-slate-800">관리 및 구독</h1>
             </header>
 
             <div class="p-6 space-y-8">
-                
-                <section>
-                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-3 tracking-wider">청소비 정산 방식</h3>
-                    <div class="bg-white p-1 rounded-xl border border-slate-200 flex mb-2">
-                        <button class="flex-1 py-2 text-sm font-bold rounded-lg bg-slate-800 text-white shadow-md">건당 정산</button>
-                        <button class="flex-1 py-2 text-sm font-medium rounded-lg text-slate-500 hover:bg-slate-50">월 합산 청구</button>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-wide">이번 달 예상 청소비</span>
+                        <span class="text-xs text-blue-600 font-bold bg-blue-50 px-2 py-1 rounded cursor-pointer">내역 보기</span>
                     </div>
-                    <p class="text-xs text-slate-400">* 작업 완료 시 예치금에서 즉시 차감됩니다.</p>
-                </section>
+                    <div class="flex items-baseline space-x-1 mb-2">
+                        <span class="text-3xl font-black text-slate-800">450,000</span>
+                        <span class="text-sm text-slate-500">원</span>
+                    </div>
+                    <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                        <div class="bg-slate-800 h-full w-[65%]"></div>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2 text-right">정산일: 2월 1일 (D-10)</p>
+                </div>
 
-                <section>
-                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-3 tracking-wider">세탁 구독 (Laundry)</h3>
-                    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
-                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-white opacity-10 rounded-full"></div>
+                <div onclick="openModal('plan-modal')" class="group cursor-pointer">
+                    <h3 class="text-sm font-bold text-slate-500 uppercase mb-3 tracking-wider flex justify-between">
+                        세탁 구독 (Laundry)
+                        <span class="text-xs text-blue-600 normal-case group-hover:underline">플랜 변경</span>
+                    </h3>
+                    <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-xl shadow-indigo-200 relative overflow-hidden transition transform group-hover:scale-[1.02]">
+                        <div class="absolute -right-6 -top-6 w-32 h-32 bg-white opacity-10 rounded-full blur-xl"></div>
                         
-                        <div class="flex justify-between items-start mb-4">
+                        <div class="flex justify-between items-start mb-6">
                             <div>
-                                <h4 class="text-lg font-bold">Premium Wash</h4>
-                                <p class="text-indigo-100 text-xs">호텔급 침구/타월 수거 배송</p>
+                                <h4 class="text-lg font-bold">Pro Plan</h4>
+                                <p class="text-indigo-200 text-xs mt-0.5">무제한 수거 & 프리미엄 케어</p>
                             </div>
-                            <span class="bg-white/20 px-2 py-1 rounded text-xs font-bold">구독중</span>
+                            <span class="bg-white/20 backdrop-blur px-2 py-1 rounded text-[10px] font-bold border border-white/10">ACTIVE</span>
                         </div>
 
-                        <ul class="text-sm space-y-2 mb-6 text-indigo-50">
-                            <li><i class="fas fa-check mr-2"></i> 월 무제한 수거/배송</li>
-                            <li><i class="fas fa-check mr-2"></i> 오염/손상 무료 케어</li>
-                            <li><i class="fas fa-check mr-2"></i> 오전 11시 수거 → 당일 배송</li>
-                        </ul>
-
-                        <div class="flex justify-between items-center border-t border-white/20 pt-4">
-                            <div>
-                                <span class="text-xs opacity-70">다음 결제일</span>
-                                <div class="font-bold">02월 01일</div>
+                        <div class="flex justify-between items-end border-t border-white/10 pt-4">
+                            <div class="text-xs text-indigo-200">
+                                다음 결제일<br><span class="text-white font-bold text-sm">02월 01일</span>
                             </div>
-                            <div class="text-xl font-bold">₩159,000<span class="text-xs font-normal opacity-70">/월</span></div>
+                            <div class="text-right">
+                                <span class="text-2xl font-bold">₩159,000</span><span class="text-xs opacity-70">/월</span>
+                            </div>
                         </div>
                     </div>
-                </section>
-
-                <section>
-                     <h3 class="text-sm font-bold text-slate-500 uppercase mb-3 tracking-wider">결제 수단</h3>
-                     <div class="bg-white border border-slate-200 rounded-xl p-4 flex justify-between items-center">
-                         <div class="flex items-center">
-                             <div class="w-10 h-6 bg-slate-800 rounded flex items-center justify-center text-white text-[10px] mr-3">VISA</div>
-                             <div class="text-sm font-medium text-slate-700">국민카드 **** 1234</div>
-                         </div>
-                         <button class="text-xs text-blue-600 font-bold">변경</button>
-                     </div>
-                </section>
-
+                </div>
             </div>
         </div>
+
+        <div id="task-detail-modal" class="modal">
+            <header class="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 shrink-0">
+                <button onclick="closeModal('task-detail-modal')" class="text-slate-500 w-10 h-10 flex items-center justify-center"><i class="fas fa-times"></i></button>
+                <h2 class="text-sm font-bold text-slate-800">작업 상세 정보</h2>
+                <div class="w-10"></div>
+            </header>
+            <div class="modal-content p-6 bg-slate-50">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                    <h3 class="text-xl font-bold text-slate-800 mb-1">강남 듀플렉스 #104</h3>
+                    <p class="text-sm text-slate-500 mb-4">표준 청소 (Standard Clean)</p>
+                    
+                    <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                        <div>
+                            <span class="text-xs text-slate-400 block">체크인 (게스트)</span>
+                            <span class="text-sm font-bold text-slate-700">오늘 15:00</span>
+                        </div>
+                        <div>
+                            <span class="text-xs text-slate-400 block">인원</span>
+                            <span class="text-sm font-bold text-slate-700">4명 (유아 1포함)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">배정 관리</h4>
+                <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center mb-6">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500"><i class="fas fa-user"></i></div>
+                        <div>
+                            <span class="text-xs text-slate-400 block">담당자</span>
+                            <span class="text-sm font-bold text-slate-800">박성실 매니저</span>
+                        </div>
+                    </div>
+                    <button class="text-xs text-blue-600 font-bold border border-blue-100 bg-blue-50 px-3 py-1.5 rounded-lg">변경</button>
+                </div>
+
+                <h4 class="text-xs font-bold text-slate-400 uppercase mb-3">체크리스트 미리보기</h4>
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                    <div class="p-3 border-b border-slate-50 flex items-center text-sm text-slate-600">
+                        <i class="far fa-square mr-3 text-slate-300"></i> 침구류 전체 교체 및 세팅
+                    </div>
+                    <div class="p-3 border-b border-slate-50 flex items-center text-sm text-slate-600">
+                        <i class="far fa-square mr-3 text-slate-300"></i> 냉장고 내부 음식물 폐기
+                    </div>
+                    <div class="p-3 flex items-center text-sm text-slate-600">
+                        <i class="far fa-square mr-3 text-slate-300"></i> 화장실 어메니티 리필 (샴푸/바디)
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-white border-t border-slate-100 shrink-0">
+                <button class="w-full bg-slate-800 text-white py-3 rounded-xl font-bold">작업 시작 알림 보내기</button>
+            </div>
+        </div>
+
+        <div id="photo-modal" class="modal bg-black">
+            <div class="absolute top-4 right-4 z-50">
+                <button onclick="closeModal('photo-modal')" class="w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="w-full h-full flex flex-col justify-center items-center">
+                <img src="https://images.unsplash.com/photo-1554995207-c18c203602cb?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80" class="w-full max-h-[70vh] object-contain">
+                <div class="mt-4 text-white text-center">
+                    <h3 class="font-bold text-lg">거실 전경</h3>
+                    <p class="text-sm text-gray-400">2026.01.22 13:42 촬영</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="plan-modal" class="modal">
+            <header class="h-14 bg-white border-b border-slate-100 flex items-center justify-between px-4 shrink-0">
+                <button onclick="closeModal('plan-modal')" class="text-slate-500 w-10 h-10 flex items-center justify-center"><i class="fas fa-times"></i></button>
+                <h2 class="text-sm font-bold text-slate-800">구독 플랜 변경</h2>
+                <div class="w-10"></div>
+            </header>
+            <div class="modal-content p-6">
+                <div class="space-y-4">
+                    <div class="border border-slate-200 rounded-2xl p-5 bg-white opacity-60">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-slate-700">Basic Plan</h3>
+                            <span class="text-sm font-bold">₩89,000/월</span>
+                        </div>
+                        <ul class="text-xs text-slate-500 space-y-1 mb-4">
+                            <li>• 월 10회 수거/배송</li>
+                            <li>• 일반 세탁 (생활빨래)</li>
+                        </ul>
+                        <button class="w-full py-2 border border-slate-300 rounded-lg text-xs font-bold text-slate-500">선택하기</button>
+                    </div>
+
+                    <div class="border-2 border-indigo-600 rounded-2xl p-5 bg-indigo-50 relative">
+                        <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-lg">현재 이용중</div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="font-bold text-indigo-900">Pro Plan</h3>
+                            <span class="text-sm font-bold text-indigo-900">₩159,000/월</span>
+                        </div>
+                        <ul class="text-xs text-indigo-700 space-y-1 mb-4">
+                            <li>• <span class="font-bold">무제한</span> 수거/배송</li>
+                            <li>• 호텔급 린넨 케어 & 다림질</li>
+                            <li>• 오염/손상 무료 복원</li>
+                        </ul>
+                        <button class="w-full py-2 bg-indigo-600 rounded-lg text-xs font-bold text-white shadow-md">이용 중</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <div class="bottom-nav">
             <div class="nav-item active" onclick="switchTab('calendar')" id="nav-calendar">
@@ -228,20 +340,28 @@
     </div>
 
     <script>
+        // Tab Switching Logic
         function switchTab(tabId) {
-            // Hide all tabs
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-
-            // Show selected tab
+            // Screens
+            document.querySelectorAll('.tab-screen').forEach(el => el.classList.remove('active'));
             document.getElementById('tab-' + tabId).classList.add('active');
             
-            // Update Nav if exists
+            // Nav Items
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             const navItem = document.getElementById('nav-' + tabId);
             if(navItem) navItem.classList.add('active');
 
-            // Scroll to top
-            document.querySelector('.mobile-frame').scrollTo(0,0);
+            // Scroll Top
+            document.querySelector('.content-area.active').scrollTop = 0;
+        }
+
+        // Modal Logic
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('open');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('open');
         }
     </script>
 </body>
